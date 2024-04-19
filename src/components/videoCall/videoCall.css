@@ -38,6 +38,7 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
   padding: 8px 10px;
   background-color: rgba(0, 0, 0, 0.552);
@@ -53,4 +54,10 @@
   width: 90px;
   height: 90px;
   border-radius: 100rem;
+}
+
+.video-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
