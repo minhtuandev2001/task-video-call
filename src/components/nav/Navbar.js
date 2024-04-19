@@ -5,56 +5,72 @@ import micOff from "../../asset/image/micOff.svg"
 import cameraOn from "../../asset/image/cameraOn.svg"
 import cameraOff from "../../asset/image/cameraOff.svg"
 import btnleave from "../../asset/image/leave.svg"
+import reaction from "../../asset/image/reaction.svg"
 
-export default function Navbar({ toggleMic, toggleCamera, leaveRoom }) {
-  const [acceptMic, setAcceptMic] = useState(false)
+export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReaction }) { // 2 đối số liên quan đến camera, mic
+  const [acceptMic, setAcceptMic] = useState(true)
   const [acceptCam, setAcceptCam] = useState(true)
+  const [mic, setMic] = useState(false)
+  const [camera, setCamera] = useState(true)
   const handleMic = () => {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(() => {
-        toggleMic();
-        setAcceptMic(!acceptMic)
-      })
-      .catch(() => {
-        alert("mic khong su dung duoc")
-      })
+    // check điều kiện từ đối số trả về từ database xem thử
+    if (acceptMic) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+          toggleMic();
+          setMic(!mic)
+        })
+        .catch(() => {
+          alert("mic khong su dung duoc")
+        })
+    }
   }
   const handleCam = () => {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(() => {
-        toggleCamera();
-        setAcceptCam(!acceptCam)
-      })
-      .catch(() => {
-        alert("camera khong su dung duoc")
-      })
+    if (acceptCam) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(() => {
+          toggleCamera();
+          setCamera(!camera)
+        })
+        .catch(() => {
+          alert("camera khong su dung duoc")
+        })
+    }
   }
   const handleLeave = () => {
     leaveRoom();
   }
-  useEffect(() => {
+  const handleReaction = () => {
+    sendReaction();
+  }
+  useEffect(() => { // check lần đầu xem có mở camera được ko
     console.log("check chay vao day")
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(() => {
-        setAcceptCam(true)
+        if (acceptCam) {
+          setCamera(true)
+        } else {
+          setCamera(false)
+        }
       })
       .catch(() => {
-        setAcceptCam(false)
+        setCamera(false)
       })
   }, [])
   return (
     <div className='navbar'>
-      {acceptMic ?
+      {mic ?
         <button onClick={handleMic}><img src={micOn} alt="" /></button>
         :
         <button onClick={handleMic}><img src={micOff} alt="" /></button>
       }
-      {acceptCam ?
+      {camera ?
         <button onClick={handleCam}><img src={cameraOn} alt="" /></button>
         :
         <button onClick={handleCam}><img src={cameraOff} alt="" /></button>
       }
       <button onClick={handleLeave}><img src={btnleave} alt="" /></button>
+      <button onClick={handleReaction}><img src={reaction} alt="" /></button>
     </div>
   )
 }

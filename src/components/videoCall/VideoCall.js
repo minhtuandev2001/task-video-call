@@ -11,7 +11,7 @@ import btnLeave from "../../asset/image/leave.svg"
 import AgoraRTC from 'agora-rtc-sdk-ng'
 import AgoraRTM from "agora-rtm-sdk"
 
-export default function VideoCall({ roomId, uid }) { // trong này cần id của chủ phòng 
+export default function VideoCall({ roomId, uid }) { // trong này cần id của chủ phòng ,  2 đối số liên quan đến camera, mic
   let config = {
     appid: 'ebc53ce9f18e46a1a04354d539f5f105',
     token: null,
@@ -32,7 +32,8 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
   const cameraActive = useRef(true);
   const micCanUse = useRef(true);
   const cameraCanUse = useRef(true);
-  const buttonCameraRef = useRef(null);
+  const [acceptCam, setAcceptCam] = useState(true) // đối số camera
+  const chatListRef = useRef(null);
 
   // xử lý
   const initRtm = async () => {
@@ -53,6 +54,7 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
       handleReceiveMessage(message, peerId)
     })
     window.addEventListener('beforeunload', leaveRtmChannel)
+
     channel.on('MemberJoined', handleMemberJoined)
     channel.on('MemberLeft', handleMemberLeft)
   }
@@ -76,35 +78,44 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
           await rtcClient.publish([localTracks.audioTrack])
           initVolumeIndicator();
         })
-        .catch(function (err0r) {
+        .catch(function (error) {
           micCanUse.current = false;
           console.log("khong the su dung mic");
         });
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(async function (stream) {
-          localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack()
-          let userVideo = `<div class="video-wrapper" id="user-${uid}">
+          if (acceptCam) { // nếu database trả về true // được bật camera
+            localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack()
+            let userVideo = `<div class="video-wrapper" id="user-${uid}">
         <div class="video-display" id="stream-${uid}">
         </div>
         <div class="video-desc">
-            <p>${uid} owner </p>
+            <p>name: ${uid} owner </p>
             </div>
             </div>`
-          videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
-          localTracks.videoTrack.play(`stream-${uid}`)
-          await rtcClient.publish([localTracks.videoTrack])
-          // camera không bật chỗ trống được tạo trước
+            videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
+            localTracks.videoTrack.play(`stream-${uid}`)
+            await rtcClient.publish([localTracks.videoTrack])
+          } else {
+            let userThumnail = `<div class="video-wrapper" id="user-${uid}">
+            <img class='avatar' src="https://images.unsplash.com/photo-1712569490441-0c7cc00e6768?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
+            <div class="video-desc">
+              <p>name: ${uid} owner ko camera</p>
+              </div>
+              </div>`
+            videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
+          }
         })
         .catch(function (error) {
           cameraCanUse.current = false;
           console.log("khong the su dung camera ");
-          let userVideo = `<div class="video-wrapper" id="user-${uid}">
+          let userThumnail = `<div class="video-wrapper" id="user-${uid}">
           <img class='avatar' src="https://images.unsplash.com/photo-1712569490441-0c7cc00e6768?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
           <div class="video-desc">
-            <p>${uid} owner ko camera</p>
+            <p>name: ${uid} owner ko camera</p>
             </div>
             </div>`
-          videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
+          videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
         });
     }
   }
@@ -114,47 +125,43 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
   }
 
   function handleToogleMicMemeber(id) {
-    let content = {
-      type: "action-mic",
-      id: id
-    }
-    channel.sendMessage({ text: JSON.stringify(content), type: "text" })
+    // kiểm tra nếu là chủ phòng mới tiếp tục
     console.log("check mic", id)
   }
+
   function handleToogleCameraMemeber(id) {
-    // channel.sendMessage({ text: "hello mn", type: "text" })
+    // kiểm tra nếu là chủ phòng mới tiếp tục
     console.log("check camera", id)
   }
+
   function handleToogleLeaveMemeber(id) {
-    // channel.sendMessage({ text: "hello mn", type: "text" })
+    // kiểm tra nếu là chủ phòng mới tiếp tục
     console.log("check leave", id)
   }
-  const handleReceiveMessage = (msg, Peerid) => {
-    let content = JSON.parse(msg.text);
-    alert(`${content.id} : ${Peerid}`)
-    if (content.id === uid) {
-      switch (content.type) {
-        case 'action-mic':
-          if (micCanUse.current) {
-            toggleMic()
-          } else {
-            let content = {
-              type: "send-error",
-              id: Peerid
-            }
-            channel.sendMessage({ text: JSON.stringify(content), type: "text" })
-          }
-          break;
-        case 'send-error':
-          // nơi chủ phòng nhận lại lỗi của các member gặp phải
-          alert(`loi`)
-          break;
 
-        default:
-          break;
-      }
+  const handleReceiveMessage = async (msg, Peerid) => {
+    let content = JSON.parse(msg.text);
+    switch (content.type) {
+      case 'reacttion':
+        const { name, userRtcUid, avatar } = await rtmClient.getUserAttributesByKeys(Peerid, ['name', 'userRtcUid', 'avatar'])
+        let mesEle = `<p>${name} : ${Peerid}</p></br>`
+        chatListRef.current.insertAdjacentHTML('beforeend', mesEle)
+        // alert(`${name} hello`)
+        break;
+
+      default:
+        break;
     }
   }
+  function sendReaction() {
+    let content = {
+      type: "reacttion"
+    }
+    channel.sendMessage({ text: JSON.stringify(content), type: "text" })
+    // kiểm tra nếu là chủ phòng mới tiếp tục
+    console.log("check reacttion ")
+  }
+
   let handleMemberJoined = async (MemberId) => {
     const { name, userRtcUid, avatar } = await rtmClient.getUserAttributesByKeys(MemberId, ['name', 'userRtcUid', 'avatar'])
     let userVideo = `<div class="video-wrapper" id="user-${MemberId}">
@@ -451,22 +458,13 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
   }, [])
   return (
     <div className="video-call">
-      <Navbar toggleMic={toggleMic} toggleCamera={toggleCamera} leaveRoom={leaveRoom}></Navbar>
+      <Navbar toggleMic={toggleMic} toggleCamera={toggleCamera} leaveRoom={leaveRoom} sendReaction={sendReaction}></Navbar>
       <div className='video'>
-        {/* <div className="video-owner video-wrapper">
-          <img className='avatar' src="https://images.unsplash.com/photo-1712569490441-0c7cc00e6768?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
-          <div className="video-desc">
-            <div className="">
-              <button>1</button>
-              <button>1</button>
-            </div>
-            <p>tuan</p>
-          </div>
-        </div> */}
         <div className="list-video" ref={videosRef}>
           {/* <div className="video-item video-wrapper"></div> */}
         </div>
       </div>
+      <div className="list-message" ref={chatListRef}></div>
     </div>
   )
 }
