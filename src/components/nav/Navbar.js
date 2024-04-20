@@ -23,8 +23,10 @@ export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReactio
           setMic(!mic)
         })
         .catch(() => {
-          alert("mic khong su dung duoc")
+          alert("mic không sử dụng được")
         })
+    } else {
+      alert("bạn bị cấm mic")
     }
   }
   const handleCam = () => {
@@ -35,8 +37,10 @@ export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReactio
           setCamera(!camera)
         })
         .catch(() => {
-          alert("camera khong su dung duoc")
+          alert("camera không sử dụng được")
         })
+    } else {
+      alert("bạn bị cấm sủw dụng camera")
     }
   }
   const handleLeave = () => {

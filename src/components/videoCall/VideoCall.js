@@ -73,22 +73,28 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
 
     // xuat ban - publish
     // kiểm tra camera
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(async function (stream) {
-        if (acceptCam === true) { // nếu database trả về true // được bật camera
+    if (acceptCam) { // nếu database trả về true // được bật camera
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(async function (stream) {
           console.log("check 9 vao")
+          console.log("check 9 ", typeof acceptCam)
+          console.log(typeof typeof acceptCam, "tuan")
           localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack()
           let userVideo = `<div class="video-wrapper" id="user-${uid}">
-        <div class="video-display" id="stream-${uid}">
-        </div>
-        <div class="video-desc">
-            <p>name: ${uid} owner </p>
-            </div>
-            </div>`
+          <div class="video-display" id="stream-${uid}">
+          </div>
+          <div class="video-desc">
+              <p>name: ${uid} owner </p>
+              </div>
+              </div>`
           videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
           localTracks.videoTrack.play(`stream-${uid}`)
           await rtcClient.publish([localTracks.videoTrack])
-        } else {
+        })
+        .catch(function (error) {
+          console.log("check 9 lan 2")
+          cameraCanUse.current = false;
+          console.log("khong the su dung camera ");
           let userThumnail = `<div class="video-wrapper" id="user-${uid}">
             <img class='avatar' src="https://images.unsplash.com/photo-1712569490441-0c7cc00e6768?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
             <div class="video-desc">
@@ -96,20 +102,18 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
               </div>
               </div>`
           videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
-          await rtcClient.unpublish([localTracks.videoTrack])
-        }
-      })
-      .catch(function (error) {
-        cameraCanUse.current = false;
-        console.log("khong the su dung camera ");
-        let userThumnail = `<div class="video-wrapper" id="user-${uid}">
+        });
+    } else {
+      console.log("check 9 lan 1")
+      let userThumnail = `<div class="video-wrapper" id="user-${uid}">
           <img class='avatar' src="https://images.unsplash.com/photo-1712569490441-0c7cc00e6768?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
           <div class="video-desc">
             <p>name: ${uid} owner ko camera</p>
             </div>
             </div>`
-        videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
-      });
+      videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
+      // await rtcClient.unpublish([localTracks.videoTrack])
+    }
     // kiểm tra mic 
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(async function (stream) {
@@ -227,11 +231,13 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
         </div>
         </div>`
         if (members[i] === roomOwner) {
-          videosRef.current.insertAdjacentHTML('afterbegin', newMember)
+          let user = videosRef.current.querySelector(`#user-${uid}`);
+          if (user) {
+            user.insertAdjacentHTML('beforebegin', newMember)
+          }
         } else {
           videosRef.current.insertAdjacentHTML('beforeend', newMember)
         }
-        // videosRef.current.insertAdjacentHTML('beforeend', newMember)
         let buttonMicUser = videosRef.current.querySelector(`#button-${members[i]}`);
         let buttonCamUser = videosRef.current.querySelector(`#button-camera-${members[i]}`);
         let buttonLeaveUser = videosRef.current.querySelector(`#button-leave-${members[i]}`);
@@ -285,7 +291,6 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
             <p>${user.uid} owner </p>
           </div>
         </div>`
-        // trường hợp trình duyệt 1 ko dùng cam, trình duyệt thứ 2 vào và 
         // check chủ phòng
         if (user.uid === roomOwner) {
           videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
@@ -355,9 +360,11 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
     console.log("check 1 2 3")
     delete remoteTracks[user.uid];
     let buttonMicUser = videosRef.current.querySelector(`#button-${user.uid}`);
-    buttonMicUser.removeEventListener('click', (e) => {
-      handleToogleMicMemeber(user.uid) // mở mic member
-    })
+    if (buttonMicUser) {
+      buttonMicUser.removeEventListener('click', (e) => {
+        handleToogleMicMemeber(user.uid) // mở mic member
+      })
+    }
   }
 
   let handleMemberLeft = async (MemberId) => {
@@ -413,13 +420,11 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
   }
 
   const toggleMic = async () => {
-    // mount component thì sẽ lấy data phòng , trong đó có cho mở mic ko 
+    // mount component thì sẽ lấy data phòng , trong đó có cho mở mic ko (ở thanh navbar xử lý cho người dùng)
     if (micCanUse.current) {
       if (micMuted.current) {
-        // e.target.innerHTML = "mic off"
         micMuted.current = false
       } else {
-        // e.target.innerHTML = "mic on"
         micMuted.current = true
       }
       await localTracks.audioTrack.setMuted(micMuted.current)
@@ -429,7 +434,7 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
   }
 
   const toggleCamera = async (e) => {
-    // mount component thì sẽ lấy data phòng , trong đó có cho mở camera ko 
+    // mount component thì sẽ lấy data phòng , trong đó có cho mở camera ko (ở thanh navbar xử lý cho người dùng)
     if (cameraCanUse.current) {
       if (cameraActive.current) { // tắt camera
         stopVideo()
@@ -485,7 +490,6 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
       <Navbar toggleMic={toggleMic} toggleCamera={toggleCamera} leaveRoom={leaveRoom} sendReaction={sendReaction} acceptMic2={acceptMic} acceptCam1={acceptCam1}></Navbar>
       <div className='video'>
         <div className="list-video" ref={videosRef}>
-          {/* <div className="video-item video-wrapper"></div> */}
         </div>
       </div>
       <div className="list-message" ref={chatListRef}></div>
