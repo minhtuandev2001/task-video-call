@@ -62,7 +62,7 @@ export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReactio
       .catch(() => {
         setCamera(false)
       })
-  }, [])
+  }, [camera])
   return (
     <div className='navbar'>
       {mic ?
