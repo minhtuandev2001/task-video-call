@@ -70,54 +70,54 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
     await rtcClient.join(config.appid, roomId, config.token, uid)// connect to room
 
     // xuat ban - publish
-    if (navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(async function (stream) {
-          localTracks.audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-          localTracks.audioTrack.setMuted(micMuted.current) // mặc định mic ban đầu
-          await rtcClient.publish([localTracks.audioTrack])
-          initVolumeIndicator();
-        })
-        .catch(function (error) {
-          micCanUse.current = false;
-          console.log("khong the su dung mic");
-        });
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(async function (stream) {
-          if (acceptCam) { // nếu database trả về true // được bật camera
-            localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack()
-            let userVideo = `<div class="video-wrapper" id="user-${uid}">
+    // kiểm tra camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(async function (stream) {
+        if (acceptCam) { // nếu database trả về true // được bật camera
+          localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack()
+          let userVideo = `<div class="video-wrapper" id="user-${uid}">
         <div class="video-display" id="stream-${uid}">
         </div>
         <div class="video-desc">
             <p>name: ${uid} owner </p>
             </div>
             </div>`
-            videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
-            localTracks.videoTrack.play(`stream-${uid}`)
-            await rtcClient.publish([localTracks.videoTrack])
-          } else {
-            let userThumnail = `<div class="video-wrapper" id="user-${uid}">
+          videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
+          localTracks.videoTrack.play(`stream-${uid}`)
+          await rtcClient.publish([localTracks.videoTrack])
+        } else {
+          let userThumnail = `<div class="video-wrapper" id="user-${uid}">
             <img class='avatar' src="https://images.unsplash.com/photo-1712569490441-0c7cc00e6768?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
             <div class="video-desc">
               <p>name: ${uid} owner ko camera</p>
               </div>
               </div>`
-            videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
-          }
-        })
-        .catch(function (error) {
-          cameraCanUse.current = false;
-          console.log("khong the su dung camera ");
-          let userThumnail = `<div class="video-wrapper" id="user-${uid}">
+          videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
+        }
+      })
+      .catch(function (error) {
+        cameraCanUse.current = false;
+        console.log("khong the su dung camera ");
+        let userThumnail = `<div class="video-wrapper" id="user-${uid}">
           <img class='avatar' src="https://images.unsplash.com/photo-1712569490441-0c7cc00e6768?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
           <div class="video-desc">
             <p>name: ${uid} owner ko camera</p>
             </div>
             </div>`
-          videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
-        });
-    }
+        videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
+      });
+    // kiểm tra mic 
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(async function (stream) {
+        localTracks.audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+        localTracks.audioTrack.setMuted(micMuted.current) // mặc định mic ban đầu
+        await rtcClient.publish([localTracks.audioTrack])
+        initVolumeIndicator();
+      })
+      .catch(function (error) {
+        micCanUse.current = false;
+        console.log("khong the su dung mic");
+      });
   }
   const enterRoom = async () => {
     await initRtm();
