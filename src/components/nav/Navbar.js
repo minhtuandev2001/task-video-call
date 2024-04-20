@@ -49,6 +49,9 @@ export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReactio
   const handleReaction = () => {
     sendReaction();
   }
+  useEffect(() => {
+    setCamera(camera)
+  }, [camera])
   useEffect(() => { // check lần đầu xem có mở camera được ko
     console.log("check chay vao day")
     navigator.mediaDevices.getUserMedia({ video: true })
@@ -62,7 +65,7 @@ export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReactio
       .catch(() => {
         setCamera(false)
       })
-  }, [camera])
+  }, [])
   return (
     <div className='navbar'>
       {mic ?
