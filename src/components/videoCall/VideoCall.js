@@ -11,7 +11,7 @@ import btnLeave from "../../asset/image/leave.svg"
 import AgoraRTC from 'agora-rtc-sdk-ng'
 import AgoraRTM from "agora-rtm-sdk"
 
-export default function VideoCall({ roomId, uid }) { // trong này cần id của chủ phòng ,  2 đối số liên quan đến camera, mic
+export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam1 }) { // trong này cần id của chủ phòng ,  2 đối số liên quan đến camera, mic
   let config = {
     appid: 'ebc53ce9f18e46a1a04354d539f5f105',
     token: null,
@@ -32,7 +32,8 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
   const cameraActive = useRef(true);
   const micCanUse = useRef(true);
   const cameraCanUse = useRef(true);
-  const [acceptCam, setAcceptCam] = useState(true) // đối số camera
+  // const [acceptCam, setAcceptCam] = useState(true) // đối số camera
+  const [acceptCam, setAcceptCam] = useState(acceptCam1) // đối số camera
   const chatListRef = useRef(null);
 
   // xử lý
@@ -126,17 +127,23 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
 
   function handleToogleMicMemeber(id) {
     // kiểm tra nếu là chủ phòng mới tiếp tục
-    console.log("check mic", id)
+    if (uid === roomOwner) {
+      console.log("check mic", id)
+    }
   }
 
   function handleToogleCameraMemeber(id) {
     // kiểm tra nếu là chủ phòng mới tiếp tục
-    console.log("check camera", id)
+    if (uid === roomOwner) {
+      console.log("check camera", id)
+    }
   }
 
   function handleToogleLeaveMemeber(id) {
     // kiểm tra nếu là chủ phòng mới tiếp tục
-    console.log("check leave", id)
+    if (uid === roomOwner) {
+      console.log("check leave", id)
+    }
   }
 
   const handleReceiveMessage = async (msg, Peerid) => {
@@ -176,7 +183,11 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
           </div>
           </div>`
     // check chủ phòng afterbegin
-    videosRef.current.insertAdjacentHTML('beforeend', userVideo)
+    if (MemberId === roomOwner) {
+      videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
+    } else {
+      videosRef.current.insertAdjacentHTML('beforeend', userVideo)
+    }
     let buttonMicUser = videosRef.current.querySelector(`#button-${MemberId}`);
     let buttonCamUser = videosRef.current.querySelector(`#button-camera-${MemberId}`);
     let buttonLeaveUser = videosRef.current.querySelector(`#button-leave-${MemberId}`);
@@ -212,7 +223,12 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
           <p>${name} tham gia</p> 
         </div>
         </div>`
-        videosRef.current.insertAdjacentHTML('beforeend', newMember)
+        if (members[i] === roomOwner) {
+          videosRef.current.insertAdjacentHTML('afterbegin', newMember)
+        } else {
+          videosRef.current.insertAdjacentHTML('beforeend', newMember)
+        }
+        // videosRef.current.insertAdjacentHTML('beforeend', newMember)
         let buttonMicUser = videosRef.current.querySelector(`#button-${members[i]}`);
         let buttonCamUser = videosRef.current.querySelector(`#button-camera-${members[i]}`);
         let buttonLeaveUser = videosRef.current.querySelector(`#button-leave-${members[i]}`);
@@ -268,7 +284,12 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
         </div>`
         // trường hợp trình duyệt 1 ko dùng cam, trình duyệt thứ 2 vào và 
         // check chủ phòng
-        videosRef.current.insertAdjacentHTML('beforeend', userVideo)
+        if (user.uid === roomOwner) {
+          videosRef.current.insertAdjacentHTML('afterbegin', userVideo)
+        } else {
+          videosRef.current.insertAdjacentHTML('beforeend', userVideo)
+        }
+        // videosRef.current.insertAdjacentHTML('beforeend', userVideo)
       }
       let buttonMicUser = videosRef.current.querySelector(`#button-${user.uid}`);
       let buttonCamUser = videosRef.current.querySelector(`#button-camera-${user.uid}`);
@@ -458,7 +479,7 @@ export default function VideoCall({ roomId, uid }) { // trong này cần id củ
   }, [])
   return (
     <div className="video-call">
-      <Navbar toggleMic={toggleMic} toggleCamera={toggleCamera} leaveRoom={leaveRoom} sendReaction={sendReaction}></Navbar>
+      <Navbar toggleMic={toggleMic} toggleCamera={toggleCamera} leaveRoom={leaveRoom} sendReaction={sendReaction} acceptMic2={acceptMic} acceptCam1={acceptCam1}></Navbar>
       <div className='video'>
         <div className="list-video" ref={videosRef}>
           {/* <div className="video-item video-wrapper"></div> */}

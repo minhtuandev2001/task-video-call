@@ -7,9 +7,11 @@ import cameraOff from "../../asset/image/cameraOff.svg"
 import btnleave from "../../asset/image/leave.svg"
 import reaction from "../../asset/image/reaction.svg"
 
-export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReaction }) { // 2 đối số liên quan đến camera, mic
-  const [acceptMic, setAcceptMic] = useState(true)
-  const [acceptCam, setAcceptCam] = useState(true)
+export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReaction, acceptMic2, acceptCam1 }) { // 2 đối số liên quan đến camera, mic
+  // const [acceptMic, setAcceptMic] = useState(true)
+  // const [acceptCam, setAcceptCam] = useState(true)
+  const [acceptMic, setAcceptMic] = useState(acceptMic2)
+  const [acceptCam, setAcceptCam] = useState(acceptCam1)
   const [mic, setMic] = useState(false)
   const [camera, setCamera] = useState(true)
   const handleMic = () => {
