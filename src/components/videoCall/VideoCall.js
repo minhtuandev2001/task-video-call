@@ -35,6 +35,7 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
   // const [acceptCam, setAcceptCam] = useState(true) // đối số camera
   const [acceptCam, setAcceptCam] = useState(acceptCam1) // đối số camera
   const chatListRef = useRef(null);
+  console.log("check 9", acceptMic, acceptCam1, acceptCam)
 
   // xử lý
   const initRtm = async () => {
@@ -74,7 +75,8 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
     // kiểm tra camera
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(async function (stream) {
-        if (acceptCam) { // nếu database trả về true // được bật camera
+        if (acceptCam === true) { // nếu database trả về true // được bật camera
+          console.log("check 9 vao")
           localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack()
           let userVideo = `<div class="video-wrapper" id="user-${uid}">
         <div class="video-display" id="stream-${uid}">
@@ -94,6 +96,7 @@ export default function VideoCall({ roomId, uid, roomOwner, acceptMic, acceptCam
               </div>
               </div>`
           videosRef.current.insertAdjacentHTML('afterbegin', userThumnail)
+          await rtcClient.unpublish([localTracks.videoTrack])
         }
       })
       .catch(function (error) {

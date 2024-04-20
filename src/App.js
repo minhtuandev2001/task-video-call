@@ -15,7 +15,7 @@ function App() {
   return (
     <div className="App">
       {/* <VideoCall roomId={roomId} uid={uid}></VideoCall> */}
-      <VideoCall roomId={roomId1} uid={uid1} roomOwner={roomIdOwner1} acceptMic={acceptMic1} acceptCam1={acceptCam1} ></VideoCall>
+      <VideoCall roomId={roomId1} uid={uid1} roomOwner={roomIdOwner1} acceptMic={JSON.parse(acceptMic1)} acceptCam1={JSON.parse(acceptCam1)} ></VideoCall>
     </div>
   );
 }
