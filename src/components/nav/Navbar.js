@@ -14,6 +14,8 @@ export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReactio
   const [acceptCam, setAcceptCam] = useState(acceptCam1)
   const [mic, setMic] = useState(false)
   const [camera, setCamera] = useState(true)
+
+  //xử lý tắt mic user
   const handleMic = () => {
     // check điều kiện từ đối số trả về từ database xem thử
     if (acceptMic) {
@@ -29,6 +31,7 @@ export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReactio
       alert("bạn bị cấm mic")
     }
   }
+  //xử lý tắt cam user
   const handleCam = () => {
     if (acceptCam) {
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -43,17 +46,20 @@ export default function Navbar({ toggleMic, toggleCamera, leaveRoom, sendReactio
       alert("bạn bị cấm sủw dụng camera")
     }
   }
+  //xử lý tắt thoát user
   const handleLeave = () => {
     leaveRoom();
   }
+  //xử lý thả reaction user
   const handleReaction = () => {
     sendReaction();
   }
+  // cập nhật lại camera
   useEffect(() => {
     setCamera(camera)
   }, [camera])
+
   useEffect(() => { // check lần đầu xem có mở camera được ko
-    console.log("check chay vao day")
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(() => {
         if (acceptCam) {
